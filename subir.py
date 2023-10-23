@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 AWS_ACCESS_KEY_ID = 'AKIASAFP3RY6AJDLGRG6'
 AWS_SECRET_ACCESS_KEY = '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'
-AWS_REGION = 'N/A'  # Reemplaza con tu región us-east-1
+AWS_REGION = 'us-east-1'  # Reemplaza con tu región us-east-1
 S3_BUCKET_NAME = 'jesusmorabucket'
 
 from fastapi import FastAPI, UploadFile, File
