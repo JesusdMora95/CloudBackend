@@ -45,6 +45,23 @@ async def upload_file(file: UploadFile):
 
     return JSONResponse(content={"message": "Archivo cargado exitosamente"})
 
+#@app.get("/list/")
+#async def list_files():
+#    s3_client = boto3.client(
+#        's3',
+#        aws_access_key_id=AWS_ACCESS_KEY_ID,
+#        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+#        region_name=AWS_REGION
+#    )
+#
+#    try:
+#        response = s3_client.list_objects(Bucket=S3_BUCKET_NAME)
+#        files = [obj['Key'] for obj in response.get('Contents', [])]
+#        return JSONResponse(content={"files": files})
+#    except Exception as e:
+#        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
 @app.get("/list/")
 async def list_files():
     s3_client = boto3.client(
@@ -56,8 +73,32 @@ async def list_files():
 
     try:
         response = s3_client.list_objects(Bucket=S3_BUCKET_NAME)
-        files = [obj['Key'] for obj in response.get('Contents', [])]
+        objects = response.get('Contents', [])
+
+        # Crear una lista con información detallada de cada objeto
+        files = []
+
+        for obj in objects:
+            key = obj['Key']
+            size = obj['Size']
+            last_modified = obj['LastModified'].strftime("%Y-%m-%d %H:%M:%S")  # Formatea el objeto datetime como una cadena
+
+            # Genera un enlace de descarga prefirmado
+            s3_client = boto3.client(
+                's3',
+                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+                region_name=AWS_REGION
+            )
+            url = s3_client.generate_presigned_url('get_object', Params={'Bucket': S3_BUCKET_NAME, 'Key': key}, ExpiresIn=3600)
+
+            files.append({
+                'Key': key,
+                'Size': size,
+                'LastModified': last_modified,
+                'DownloadLink': url  # Agrega el enlace de descarga como un cuarto atributo
+            })
+
         return JSONResponse(content={"files": files})
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
-
